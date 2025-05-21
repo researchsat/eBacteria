@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Microbial Analysis Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .section:last-child { border-bottom: none; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"] { 
+            width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; 
+        }
+        button { 
+            padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;
+        }
+        button:hover { background-color: #0056b3; }
+        .results { margin-top: 15px; padding: 10px; background-color: #e9ecef; border-radius: 4px; white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Microbial Analysis Dashboard</h1>
+
+        <!-- Colony Count Section -->
+        <div class="section">
+            <h2>Colony Counting</h2>
+            <label for="colonyImageName">Image Name/ID:</label>
+            <input type="text" id="colonyImageName" value="colony_sample_01.png">
+            <button onclick="getColonyCount()">Get Colony Count</button>
+            <div id="colonyResults" class="results">Colony count results will appear here...</div>
+        </div>
+
+        <!-- Microbial Identification Section -->
+        <div class="section">
+            <h2>Microbial Identification</h2>
+            <label for="microbeImageName">Image Name/ID:</label>
+            <input type="text" id="microbeImageName" value="microbe_sample_X.png">
+            <button onclick="getMicrobialId()">Identify Microbe</button>
+            <div id="microbeResults" class="results">Microbial identification results will appear here...</div>
+        </div>
+
+        <!-- Growth Monitoring Section -->
+        <div class="section">
+            <h2>Growth Monitoring</h2>
+            <label for="growthImageSeries">Image Series (comma-separated):</label>
+            <input type="text" id="growthImageSeries" value="series_img1.png,series_img2.png,series_img3.png">
+            <label for="growthDuration">Duration (hours):</label>
+            <input type="number" id="growthDuration" value="24">
+            <button onclick="getGrowthMonitoring()">Monitor Growth</button>
+            <div id="growthResults" class="results">Growth monitoring results will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData(endpoint, body, resultsId) {
+            const resultsDiv = document.getElementById(resultsId);
+            resultsDiv.textContent = 'Loading...';
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`HTTP error ${response.status}: ${errorData}`);
+                }
+                const data = await response.json();
+                resultsDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                resultsDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function getColonyCount() {
+            const imageName = document.getElementById('colonyImageName').value;
+            if (!imageName) { alert('Please enter an image name for colony counting.'); return; }
+            fetchData('/api/v1/analyze/colony_count', { image_name: imageName }, 'colonyResults');
+        }
+
+        function getMicrobialId() {
+            const imageName = document.getElementById('microbeImageName').value;
+            if (!imageName) { alert('Please enter an image name for microbial identification.'); return; }
+            fetchData('/api/v1/analyze/microbial_identification', { image_name: imageName }, 'microbeResults');
+        }
+
+        function getGrowthMonitoring() {
+            const seriesText = document.getElementById('growthImageSeries').value;
+            const duration = parseInt(document.getElementById('growthDuration').value, 10);
+            if (!seriesText) { alert('Please enter image series.'); return; }
+            if (isNaN(duration) || duration <= 0) { alert('Please enter a valid duration.'); return; }
+            const imageSeries = seriesText.split(',').map(s => s.trim()).filter(s => s);
+            if (imageSeries.length === 0) { alert('Please enter at least one image name in the series.'); return; }
+            fetchData('/api/v1/analyze/growth_monitoring', { image_series: imageSeries, duration_hours: duration }, 'growthResults');
+        }
+    </script>
+</body>
+</html>
