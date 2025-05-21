@@ -53,3 +53,23 @@ def test_growth_monitoring_endpoint():
         "Contamination Detected"
     ]
     assert data["growth_status"] in expected_statuses
+
+def test_antibiotic_resistance_endpoint():
+    payload = {
+        "identified_microbe": "Staphylococcus aureus",
+        "sensitivity_data": {"zone_mm_penicillin": 10}
+    }
+    response = client.post("/api/v1/predict/antibiotic_resistance", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "identified_microbe" in data
+    assert "sensitivity_data" in data
+    assert "resistance_profile" in data
+    assert data["identified_microbe"] == payload["identified_microbe"]
+    assert data["sensitivity_data"] == payload["sensitivity_data"]
+    assert isinstance(data["resistance_profile"], dict)
+    
+    expected_statuses = ["Susceptible", "Resistant", "Intermediate"]
+    for antibiotic, status in data["resistance_profile"].items():
+        assert isinstance(antibiotic, str)
+        assert status in expected_statuses

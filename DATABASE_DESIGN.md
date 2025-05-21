@@ -9,7 +9,7 @@ Pydantic models for data validation and serialization are defined in `app/schema
 - `UserCreate`, `UserRead` for user management.
 - `Token`, `TokenData` for authentication.
 - `ImageMetadataCreate`, `ImageMetadataRead` for tracking uploaded images.
-- `AnalysisResultBase`, `AnalysisResultCreate`, `AnalysisResultRead` for storing analysis outputs.
+- `AnalysisResultBase`, `AnalysisResultCreate`, `AnalysisResultRead` for storing analysis outputs. (Note: `AnalysisResultBase` and its derivatives now include an optional `confidence_score` field).
 
 ## 2. Conceptual Database Tables
 
@@ -39,6 +39,7 @@ We plan to use a relational database (e.g., PostgreSQL or SQLite for initial dev
 - `analysis_type` (String, e.g., "colony_count", "microbial_identification", "growth_monitoring")
 - `ran_at` (Timestamp, Default: Current Time)
 - `result_data` (JSONB or Text, to store the actual analysis output, e.g., `{"count": 150}` or `{"species": "E. coli"}`)
+- `confidence_score` (Float, Optional, e.g., 0.0 to 1.0, representing the AI model's confidence in the primary result like identification or classification)
 - `model_version` (String, Optional, to track which AI model version produced the result)
 - `parameters_used` (JSONB or Text, Optional, to store parameters used for the analysis)
 

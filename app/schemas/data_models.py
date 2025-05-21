@@ -39,6 +39,7 @@ class AnalysisResultBase(BaseModel):
     image_id: int # Foreign key to ImageMetadata
     analysis_type: str = Field(..., example="colony_count") # e.g., "colony_count", "identification", "growth_monitoring"
     ran_at: datetime = Field(default_factory=datetime.utcnow)
+    confidence_score: Optional[float] = Field(None, example=0.95, ge=0.0, le=1.0) # Added confidence score
     
 class AnalysisResultCreate(AnalysisResultBase):
     result_data: dict # Flexible field to store various result structures
